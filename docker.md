@@ -117,3 +117,156 @@ services:
   orchestration:
     image: "ansible"
 ```
+```
+docker run -d --name=redis redis
+docker run -d --name=db postgres:9.4
+docker run -d --name=vote -p 5000:80 --link redis:redis voting-app
+docker run -d --name=result -p 5001:80 --link db:db result-app
+docker run -d --name=worker --link db:db --link redis:redis worker
+```
+```
+redis:
+  image: redis
+
+db:
+  image: postgres:9.4
+
+vote:
+  image: voting-app
+  ports:
+  -  5000:80
+  links:
+  -  redis
+
+result:
+  image: result-app
+  ports:
+  -  5001:80
+  links:
+  -  db
+
+worker:
+  image: worker
+  links:
+  -  db
+  -  redis
+```
+- db:db = db
+- redis:redis = redis
+```
+docker-compose up
+```
+```
+# если часть образов есть только в локальных Dockerfile
+# отсутствуют в Docker Hub
+
+redis:
+  image: redis
+
+db:
+  image: postgres:9.4
+
+vote:
+  build ./vote
+  ports:
+  -  5000:80
+  links:
+  -  redis
+
+result:
+  build: ./result
+  ports:
+  -  5001:80
+  links:
+  -  db
+
+worker:
+  build ./worker 
+  links:
+  -  db
+  -  redis
+```
+## Версии docker-compose
+```
+# ver.1
+
+redis:
+  image: redis
+db: 
+  image: postgres:9.4
+vote:
+  image: voting-app
+  ports:
+  -  5000:80
+  links:
+  -  redis
+```
+```
+# ver.2
+
+version: 2
+services:
+  redis:
+    image: redis
+  db: 
+    image: postgres:9.4
+  vote:
+    image: voting-app
+    ports:
+    -  5000:80
+    depends_on:
+    -  redis
+```
+```
+# ver.3
+
+version: 3
+services:
+  redis:
+    image: redis
+  db: 
+    image: postgres:9.4
+  vote:
+    image: voting-app
+    ports:
+    -  5000:80
+```
+## Networks
+```
+version: 2
+services:
+  redis:
+    image: redis
+    networks:
+    -  backend
+  db: 
+    image: postgres:9.4
+    networks:
+    -  backend
+  vote:
+    image: voting-app
+    ports:
+    -  5000:80
+    depends_on:
+    -  redis
+    networks:
+    -  frontend
+    -  backend
+  result:
+    image: result-app
+    networks:
+    -  frontend
+    -  backend
+networks:
+  frontend:
+  backend:
+```
+## Основные команды
+- docker-compose up -d
+- docker-compose down
+- docker-compose ps
+- docker-compose logs
+- docker-compose up -d --scale vote=3
+
+
+
