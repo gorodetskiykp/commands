@@ -11,6 +11,7 @@
 - sudo apt install curl
 - ipaddr - сетевые адреса хоста
 - export DOCKER\_HOST=ip\_addr - указать хост докера
+- ps aux - список запущенных процессов
 
 # Установка docker
 - https://docs.docker.com/engine/install/ubuntu/
@@ -24,6 +25,7 @@
 - docker version - версия docker
 - sudo docker run docker/whalesay cowsay Hi! 
 - docker search whalesay - поиск образа
+- docker search --filter=stars=15 --limit 3 nginx - поиск образа
 - sudo docker pull carolynvs/whalesayd - скачать образ
 - docker run имя\_контейнера - запуск контейнера или скачивание образа и запуск
 - docker run имя\_контейнера:версия - запуск контейнера или скачивание образа и запуск
@@ -35,6 +37,10 @@
 - docker run -p 80:5000 robotocloud/webapp - связывание портов
 - docker run -v /opt/datadir/:/var/lib/mysql mysql - связывание ресурсов
 - docker run -e VAR=value image_\name - установить переменную окружения внутри контейнера
+- docker -H=remote-docker-engine:2375 - переключение на удаленный docker-хост
+- docker -H=10.10.10.1:2375 run nginx - запуск контейнера на удаленном docker-хосте
+- docker run --cpus=.5 nginx - ограничение на использование не более 50% CPU хоста
+- docker run --memory=100m nginx - ограничение на RAM=100Mb
 - docker ps - спиcок запущенных контейнеров 
 - docker ps -a = список всех контейнеров
 - docker inspect containerID - информация о контейнере
@@ -52,6 +58,46 @@
 - docker history имя - информация о слоях образа
 - docker tag hash\_name image\_name:image\_tag - присвоить имя и тег образу
 - docker login - подключится к docker hub
+- docker volume create data\_volume - создание тома для постоянного хранения данных контейнера
+- docker run -v data\_volume:/var/lib/mysql mysql - монтирование тома (если тома нет - он будет создан)
+- docker run -v /data/mysql:/var/lib/mysql mysql - монтирование произвольного каталога
+- docker run --mount type=bind,source=/data/mysql,target=/var/lib/mysql mysql - новый стиль монтирования
+- docker run -d --name webserver --volume secure-vol:/opt:ro nginx - монтирование в режиме Только для чтения
+- docker run -d --name webserver --mount source=secure-vol,target=/opt,readonly nginx
+- docker run -d --name webserver --mount source=secure-vol,target=/opt,ro nginx
+- docker volume rm some-vol - удалить том some-vol
+- docker volume prune - удалить неиспользуемые тома
+
+## Network
+
+- docker run webapp - запуск во внутренней сети (BRIDGE)
+- docker run webapp --network=none
+- docker run webapp --network=host - запуск в сети хоста
+- docker network create --driver bridge --subnet 182.18.0.0/16 my-custom-network
+- docker network ls - список доступных сетей
+- docker network connect NewtworkName ContainerNmae - подключить контейнер к сети
+- docker network disconnect NewtworkName ContainerNmae - отключить контейнер от сети
+- docker network prune - удалить все неиспользуемые сети
+- docker network rm NetworkName - удалить сеть
+
+## Оркестрация
+
+- docker service create --replicas=100 node
+
+### Docker Swarm
+
+- docker swarm init
+- docker swarm join --token <token>
+
+### Kubernetes
+
+- kubectl create deployment node --image=node:v1
+- kubectl scale --replicas=9 node
+- kubectl set image deployment node --image=node:v2
+- kubectl rollout undo deployment node
+- kubectl run hello-minikube - запуск контейнера в кластере
+- kubectl cluster-info
+- kubectl get nodes
 
 # Dockerfile
 - FROM - образ на базе которого создается новый образ контейнера
